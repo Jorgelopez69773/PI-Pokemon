@@ -18,7 +18,7 @@ async function getPokemons(req,res,next){
                 id:result.id,
                 name:result.name,
                 type:types,
-                image:result.sprites.other.home.front_default,
+                image:result.sprites.other.dream_world.front_default,
                 hp:result.stats[0].base_stat,
                 attack:result.stats[1].base_stat,
                 defense:result.stats[2].base_stat,
@@ -53,6 +53,10 @@ async function getPokemons(req,res,next){
             let resultApi=[];
             await pushPokemons(limit,offset,resultApi);
 
+        } else{
+            console.log(name)
+            let resultApi= await getPokemon(name);
+            res.json(resultApi);
         }
     }catch(error){
         next(error)
