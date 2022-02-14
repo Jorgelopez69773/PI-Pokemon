@@ -10,12 +10,25 @@ async function getPokemons(req,res,next){
         let getPokemon=async(name)=>{
             let url=`https://pokeapi.co/api/v2/pokemon/${name}`;
             let result=(await axios.get(url)).data;
+
+            let types=result.types.map(type=>type.type.name);
+
+
             result={
                 id:result.id,
-                name:result.name
+                name:result.name,
+                type:types,
+                image:result.sprites.other.home.front_default,
+                hp:result.stats[0].base_stat,
+                attack:result.stats[1].base_stat,
+                defense:result.stats[2].base_stat,
+                speed:result.stats[5].base_stat,
+                height:result.height,
+                weight:result.weight,
             }
             return result;
         };
+
 
         let pushPokemons= async (limit,offset,array)=>{
             while(offset<40){
@@ -32,29 +45,14 @@ async function getPokemons(req,res,next){
                 });
             }
             Promise.all(array).then(pokemons=>res.json(pokemons));
-        }
+        }; 
+
         if(!name){
             let limit=10;
             let offset=0;
             let resultApi=[];
             await pushPokemons(limit,offset,resultApi);
-            
-           
-            // results=results.map(async(pokemon)=>{
-            //     console.log(' PASO 1:obtendra el nombre')
-            //     console.log(pokemon.name);
-            //     resultApi.push(await Promise.resolve(getPokemon(pokemon.name)));
-            //     console.log('paso 2 deberia pushear cada nombre ya resuelto a result API')
-            //     console.log(resultApi);
-            //     });
-            // offset=offset+1;
-                 
-            //     Promise.all(resultApi).then(async pokemones=>{
-            //         console.log('Paso 3:deberian estar todos los pokemons resueltos y listo para enviar con  res.json:')
-            //         console.log(resultApi);
-            //         console.log('paso 4: estan todos los pokemons listo y resueltos para enviar')
-            //         console.log(pokemones);
-            //         await res.json(pokemones)});
+
         }
     }catch(error){
         next(error)
