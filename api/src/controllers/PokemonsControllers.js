@@ -6,8 +6,10 @@ const {Pokemon,Type}= require ('../db');
 
 async function getPokemons(req,res,next){
     try{
+        // Obtengo el name ;
         let {name}=req.query;
 
+        // Creo una funcion asincrona para buscar un nombre por name que yo le pase;
         let getPokemon=async(name)=>{
             let url=`https://pokeapi.co/api/v2/pokemon/${name}`;
             let result=(await axios.get(url)).data;
@@ -30,7 +32,7 @@ async function getPokemons(req,res,next){
             return result;
         };
 
-
+        //la funcion PuhsPokemons buscara los pokemons de la base de datos y va a ejecutar la funcion getPokemon x cantidad de veces hasta completar los pokemons pedidos
         let pushPokemons= async (limit,offset,array)=>{
             
             let resultDb=await Pokemon.findAll({
@@ -56,6 +58,7 @@ async function getPokemons(req,res,next){
             Promise.all(array).then( async pokemons=> res.json(await resultDb.concat(pokemons)));
         }; 
 
+        // La condicion por si no existe name y lo que se debe ejecutar
         if(!name){
             let limit=10;
             let offset=0;
@@ -92,7 +95,17 @@ async function getPokemons(req,res,next){
     }
 };
 
+
+
+
+
+
+
+
+
+
 async function  getPokemon(req,res,next){
+    try{
     let id=req.params.id;
     let result=[];
     let resultDb=[];
@@ -137,6 +150,62 @@ async function  getPokemon(req,res,next){
     }else {
     res.json({message:`El ID ${id} no corresponde a un Pokemon`});
     }
+}catch(error){
+    next(error);
+}
 };
 
-module.exports={getPokemons,getPokemon};
+
+
+async function postPokemon(req,res,next){
+    try{
+let {name,hp,attack,defense,speed,height,weight,idType}=req.body;
+let url=`https://pokeapi.co/api/v2/pokemon?limit=1118`;
+let names= (await axios.get(url)).data.results;
+names=names.filter(pokemon=>pokemon.name===name);
+if(names.length>=1){
+    res.json(`El pokemon con el nombre ${name} ya existe`)
+}
+if(typeof hp!=='number' || hp<1 || hp>100){
+    res.json('La vida ingresada es incorrecta');
+};
+if(typeof attack!=='number' || attack<1 || attack>100){
+    res.json('La fuerza ingresada es incorrecta');
+};
+if(typeof defense!=='number' || defense<1 || defense>100){
+    res.json('La defensa ingresada es incorrecta');
+};
+if(typeof speed!=='number' || speed<1 || speed>100){
+    res.json('La velosidad ingresada es incorrecta');
+};
+if(typeof weight!=='number' || weight<1 ){
+    res.json('El peso ingresado es incorrecto');
+};
+if(typeof height!=='number' || height<1 ){
+    res.json('La altura ingresada es incorrecta');
+};
+let newPokemon={
+    name,
+    hp,
+    attack,
+    defense,
+    speed,
+    height,
+    weight
+};
+await Pokemon.create(newPokemon)
+.then(pokemon=>{
+    if(idType){
+        idType.map(type=>Pokemon.addType(type))
+    }
+    res.json(`¡Pokemon ${name} creado con exito!`)
+})
+
+
+    }catch(error){
+        next(error)
+    }
+}
+
+
+module.exports={getPokemons,getPokemon,postPokemon};
